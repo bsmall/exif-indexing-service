@@ -1,0 +1,32 @@
+{
+  "name": "typescript-node-express-boilerplate",
+  "version": "1.0.0",
+  "description": "Boilerplate for Node.js / Express API Rest API service.",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "NODE_ENV=development npm run build:live",
+    "start:production": "NODE_ENV=production node dist/server.js",
+    "build": "rm -rf ./dist && tsc -p . && npm run copyAssets",
+    "build:live": "NODE_ENV=development nodemon",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "copyAssets": "cp src/config/production.json dist/config/ && mkdir dist/public && cp -R src/public dist/"
+  },
+  "author": "Brian Small <brian@epicjrny.com> (https://www.epicjrny.com)",
+  "license": "MIT",
+  "dependencies": {
+    "amqplib": "^0.5.3",
+    "convict": "^5.0.0",
+    "mkdirp": "^0.5.1",
+    "morgan": "^1.9.1",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.5.12",
+    "@types/convict": "^4.2.1",
+    "@types/mkdirp": "^0.5.2",
+    "@types/morgan": "^1.7.35",
+    "nodemon": "^1.19.1",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
+  }
+}

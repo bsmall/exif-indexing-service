@@ -1,0 +1,12 @@
+{
+  "verbose": true,
+  "watch": [
+    "src"
+  ],
+  "ext": "ts,tsx,js,jsx,css,scss,sass,htm,html,json",
+  "ignore": [
+    "src/**/*/*.spec.ts",
+    "src/**/*/*.test.ts"
+  ],
+  "exec": "ts-node ./src/server.ts"
+}

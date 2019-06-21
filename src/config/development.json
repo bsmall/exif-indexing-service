@@ -1,0 +1,36 @@
+{
+  "port": 3000,
+  "logs": {
+    "logDirectory": "logs/",
+    "serverLog": {
+      "logLevel": "debug"
+    },
+    "serverErrorLog": {
+      "logLevel": "warn"
+    },
+    "serverConsoleLog": {
+      "logLevel": "debug",
+      "silent": false
+    }
+  },
+  "server": {
+    "corsOptions": {
+      "origin": "*",
+      "methods": "GET,HEAD,PATCH,POST,DELETE",
+      "preflightContinue": false,
+      "optionsSuccessStatus": 204
+    },
+    "compressionOptions": {
+      "level": -1
+    },
+    "staticContent": {
+      "path": "/public"
+    },
+    "messageQueueConfig": {
+      "hostUrl": "amqp://localhost",
+      "channel": "fileEventMessages",
+      "exchange": "",
+      "queueName": "fileWatcherQueue"
+    }
+  }
+}
