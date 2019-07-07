@@ -1,7 +1,9 @@
 import * as amqp from 'amqplib';
 
 // TODO: Upgrade to ElasticSearch 7.x.
-import {Client, ApiResponse, RequestParams} from 'elasticsearch6'
+import {Client, ApiResponse, RequestParams} from 'elasticsearch6';
+
+import {ExifTool, Tags} from 'exiftool-vendored';
 
 import config from './config';
 import logger from './logger';
@@ -29,7 +31,7 @@ esClient.info().then((info) => {
             .then((indexResponse) => {
                 // console.log(`indexResponse`, indexResponse);
                 if (indexResponse.statusCode === 404) {
-                    
+
                     // Create the index.
                     // TODO: Make 'index' parameters a config file option.
                     esClient.indices.create({index: "test"})
@@ -78,26 +80,68 @@ amqp.connect(config.get('server.messageQueueConfig.hostUrl'))
                                 logger.debug(`Starting to process: ${messageObj.eventType} --> ${messageObj.path}`);
 
 
-                                // TODO: Write code to process the message and update ElasticSearch database.
-                                // TODO: Make esIndexName a config file setting for the 'index' name.
-                                const esIndexName: string = 'test';
-                                const esDocument: RequestParams.Index = {
-                                    index: esIndexName,
-                                    type: "test",
-                                    id: messageObj.path,
-                                    body: messageObj
-                                };
-                                esClient.index(esDocument).then((esResponse) => {
-                                    // console.log(`esResponse: `, esResponse);
+                                switch (messageObj.eventType) {
 
-                                    logger.debug(`Done processing: ${messageObj.eventType} --> ${messageObj.path}`);
+                                    case "add":
+                                        // Get EXIF data for specified file.
+                                        const exifObj = new ExifTool();
+                                        exifObj.read(messageObj.path).then((tags: Tags) => {
+                                            console.log(`EXIF Tag info`, tags);
 
-                                    mqChannel.ack(message);
-                                    logger.debug(`Message acknowledged and dequeued for ${messageObj.eventType} --> ${messageObj.path}.`);
+                                            // TODO: Do stuff here.
 
-                                    // TODO: Add error handling if ElasticSearch Index operation fails.
-                                });
+                                            // Need to figure out how to handle case when image file also has a sidecar file.
 
+                                        });
+
+
+                                        // TODO: Write code to process the message and update ElasticSearch database.
+                                        // TODO: Make esIndexName a config file setting for the 'index' name.
+                                        const esIndexName: string = 'test';
+
+                                        // Prepare document payload to send to ElasticSearch.
+                                        const esDocument: RequestParams.Index = {
+                                            index: esIndexName,
+                                            type: "test",
+                                            id: messageObj.path,
+                                            body: messageObj
+                                        };
+
+                                        // Add to ElasticSearch index.
+                                        esClient.index(esDocument).then((esResponse) => {
+                                            // console.log(`esResponse: `, esResponse);
+
+                                            logger.debug(`Done processing: ${messageObj.eventType} --> ${messageObj.path}`);
+
+                                            mqChannel.ack(message);
+                                            logger.debug(`Message acknowledged and dequeued for ${messageObj.eventType} --> ${messageObj.path}.`);
+
+                                            // TODO: Add error handling if ElasticSearch Index operation fails.
+                                        });
+                                        break;
+                                    case "change":
+                                        logger.warn(`File event "change" not implemented. "${messageObj.path}" not sent to ElasticSearch database.`);
+
+                                        logger.debug(`Done processing: ${messageObj.eventType} --> ${messageObj.path}`);
+                                        mqChannel.ack(message);
+                                        logger.debug(`Message acknowledged and dequeued for ${messageObj.eventType} --> ${messageObj.path}.`);
+                                        break;
+
+                                    case "unlink":
+                                        // TODO: Implement the unlink (delete) file event to remove record from ElasticSearch.
+                                        logger.warn(`File event "unlink" not implemented. "${messageObj.path}" not sent to ElasticSearch database.`);
+
+                                        logger.debug(`Done processing: ${messageObj.eventType} --> ${messageObj.path}`);
+                                        mqChannel.ack(message);
+                                        logger.debug(`Message acknowledged and dequeued for ${messageObj.eventType} --> ${messageObj.path}.`);
+                                        break;
+
+                                    default:
+                                        // TODO: Do a better job handling this.
+                                        logger.error(`Unhandled file event type: ${messageObj.eventType}. "${messageObj.path}" not send to ElasticSearch database.`);
+                                        mqChannel.ack(message);
+                                        logger.debug(`Message acknowledged and dequeued for ${messageObj.eventType} --> ${messageObj.path}.`);
+                                }
                             }
 
 
